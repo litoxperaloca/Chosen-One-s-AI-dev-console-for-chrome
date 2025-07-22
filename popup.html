@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Litox's Keanu Console</title>
+    <script src="taiwind.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cyber-bg: #0a0a1a; --cyber-bg-secondary: #1a1a2e; --cyber-border: #32325d;
+            --cyber-green: #39ff14; --cyber-cyan: #00f6ff; --cyber-magenta: #ff00ff;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+        body {
+            font-family: var(--font-mono); width: 600px; height: 600px;
+            background-color: var(--cyber-bg); color: var(--cyber-green);
+            overflow: hidden;
+        }
+        .main-container {
+            display: grid; height: 100%; width: 100%;
+            grid-template-columns: 0fr 1fr; /* Sidebar initially collapsed */
+            grid-template-rows: auto 1fr auto;
+            grid-template-areas: "header header" "sidebar content" "footer footer";
+            transition: grid-template-columns 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .main-container.menu-open {
+             grid-template-columns: 224px 1fr; /* w-56 */
+        }
+        .header { grid-area: header; z-index: 10; }
+        .sidebar { grid-area: sidebar; overflow: hidden; background-color: var(--cyber-bg-secondary); border-right: 1px solid var(--cyber-green);}
+        .content-area { grid-area: content; position: relative; }
+        .footer { grid-area: footer; }
+        .sidebar-item { border-bottom: 1px solid var(--cyber-border); transition: all 0.2s ease-in-out; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: var(--cyber-green); color: var(--cyber-bg); cursor: pointer; }
+        .content-view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out; }
+        .hidden { opacity: 0; transform: translateY(10px); pointer-events: none; }
+        .cyber-input { background-color: #1a1a2e; border: 1px solid #32325d; color: #39ff14; }
+        .cyber-input:focus { border-color: #39ff14; box-shadow: 0 0 10px #39ff14; outline: none; }
+        .cyber-button { border: 1px solid #39ff14; color: #39ff14; text-shadow: 0 0 5px #39ff14; transition: all 0.3s ease; }
+        .cyber-button:hover:not(:disabled) { background-color: #39ff14; color: #0a0a1a; box-shadow: 0 0 20px #39ff14; }
+        .cyber-button:disabled { border-color: #32325d; color: #32325d; text-shadow: none; cursor: not-allowed; }
+        .chat-bubble-user { background-color: var(--cyber-magenta); color: #fff; clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 15% 100%, 0% 85%); border-radius: 8px; }
+        .chat-bubble-assistant-wrapper { display: flex; align-items: flex-start; }
+        .chat-bubble-assistant { background-color: var(--cyber-bg-secondary); border: 1px solid var(--cyber-green); clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 85% 100%, 0% 100%); border-radius: 8px; }
+        @keyframes blink { 0%, 95%, 100% { transform: scaleY(1); } 97.5% { transform: scaleY(0.1); } }
+        .eye-blink { animation: blink 4s infinite; }
+        @keyframes talk { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.5) scaleX(1.1); } }
+        .mouth-talk { animation: talk 0.3s infinite; }
+    </style>
+</head>
+<body class="p-2">
+    <div id="main-container" class="main-container border border-[var(--cyber-green)]">
+
+        <!-- CABECERA GLOBAL -->
+        <header class="header p-3 border-b border-[var(--cyber-green)] flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <button id="menu-toggle-btn" class="p-1 text-[var(--cyber-green)] hover:scale-125 transition hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wider">Litox's Keanu Console</h1>
+                    <p id="header-subtitle" class="text-xs text-gray-400">> standby...</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- MENÚ DESLIZANTE -->
+        <aside id="sidebar" class="w-56 flex flex-col p-4 space-y-2">
+            <!-- Items se cargarán aquí -->
+        </aside>
+
+        <!-- ÁREA DE CONTENIDO DINÁMICO -->
+        <main class="content-area overflow-hidden">
+            
+            <!-- VISTA DE BIENVENIDA -->
+            <div id="welcome-view" class="content-view p-4 flex flex-col items-center justify-center h-full">
+                <div id="boot-sequence" class="w-full max-w-md text-left space-y-2"></div>
+                <div id="welcome-options" class="mt-8 space-y-4 w-full max-w-xs hidden">
+                    <button data-view="console" class="w-full py-3 text-lg border border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black transition">> Enter Console</button>
+                    <button data-view="phantom" class="w-full py-3 text-lg border border-magenta-400 text-magenta-400 hover:bg-magenta-400 hover:text-black transition">> Activate Phantom Mode</button>
+                </div>
+            </div>
+
+            <!-- VISTA DE LA CONSOLA -->
+            <div id="console-view" class="content-view hidden h-full flex flex-col">
+                <div id="chat-container" class="flex-grow p-4 space-y-4 overflow-y-auto"></div>
+                <div id="attachment-container" class="p-2 border-t border-[var(--cyber-border)] flex-shrink-0 space-y-2 hidden">
+                    <div id="attachment-list" class="flex flex-wrap gap-2"></div>
+                </div>
+                <div class="p-4 border-t border-[var(--cyber-green)] flex-shrink-0">
+                    <div id="console-mic-status" class="text-center text-sm text-[var(--cyber-magenta)] mb-2 h-5 opacity-0"></div>
+                    <div class="relative flex items-center space-x-2">
+                        <input type="file" id="console-file-input" multiple class="hidden">
+                        <button id="console-attach-btn" title="Adjuntar" class="p-2 text-gray-500 hover:text-[var(--cyber-cyan)]"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.59a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+                        <textarea id="console-prompt-input" rows="1" class="w-full py-3 pl-5 pr-24 cyber-input resize-none" placeholder="> Wake up, Neo..."></textarea>
+                        <div class="absolute right-3 flex items-center">
+                            <button id="console-mic-btn" title="Voz" class="p-2 text-gray-500 hover:text-[var(--cyber-green)]"><svg id="console-mic-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg></button>
+                            <button id="console-submit-btn" title="Enviar" class="p-2 cyber-button rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA DEL MODO FANTASMA -->
+            <div id="phantom-view" class="content-view hidden p-4 h-full">
+                 <div class="max-w-5xl mx-auto grid grid-cols-3 gap-8 h-full">
+                    <div class="col-span-2 flex flex-col">
+                        <div>
+                            <label for="mission-objective" class="text-lg">> MISSION OBJECTIVE:</label>
+                            <textarea id="mission-objective" rows="3" class="w-full mt-2 p-3 cyber-input" placeholder="Ej: Inicia sesión en Github con mis credenciales..."></textarea>
+                            <button id="generate-plan-btn" class="mt-4 px-6 py-2 text-lg cyber-button">Generate Action Plan</button>
+                        </div>
+                        <div id="plan-container" class="mt-6 hidden flex-grow flex flex-col min-h-0">
+                            <h2 class="text-2xl">> ACTION PLAN:</h2>
+                            <div id="action-plan" class="mt-4 p-4 border-dashed border-gray-600 space-y-2 bg-[#1a1a2e] flex-grow overflow-y-auto"></div>
+                            <div class="mt-4 space-x-4 flex-shrink-0">
+                                <button id="approve-plan-btn" class="px-6 py-2 text-lg cyber-button">Approve & Deploy</button>
+                                <button id="clear-plan-btn" class="px-6 py-2 text-lg border-red-500 text-red-500 hover:bg-red-500 hover:text-white">Reject Plan</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-span-1 flex flex-col space-y-6">
+                        <div id="secure-vault-container" class="bg-[#1a1a2e] p-4 border border-[var(--cyber-border)]">
+                            <h2 class="text-xl text-cyan-400">> Secure Vault</h2>
+                            <div class="space-y-2 mt-2">
+                                <input id="secret-key-input" type="text" class="w-full p-2 text-sm cyber-input" placeholder="Secret Key (ej: USERNAME)">
+                                <input id="secret-value-input" type="password" class="w-full p-2 text-sm cyber-input" placeholder="Secret Value">
+                            </div>
+                            <button id="add-secret-btn" class="w-full mt-3 py-1 text-sm cyber-button">Add Secret</button>
+                            <div id="secrets-list" class="mt-3 text-xs space-y-1"></div>
+                        </div>
+                        <div id="execution-log-container" class="flex-grow flex flex-col min-h-0">
+                            <h2 class="text-xl">> EXECUTION LOG:</h2>
+                            <div id="execution-log" class="mt-2 p-2 flex-grow overflow-y-auto border border-gray-600 bg-black"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA DE CONFIGURACIÓN -->
+            <div id="config-view" class="content-view hidden p-8">
+                <h2 class="text-3xl text-cyan-400">> System Configuration</h2>
+                <p class="text-gray-500 mt-1">> Configure API access credentials.</p>
+                <div class="mt-8 max-w-lg">
+                    <label for="api-key-input" class="text-lg">> Gemini API Key:</label>
+                    <div class="relative mt-2 flex items-center">
+                        <input id="api-key-input" type="password" class="w-full p-3 cyber-input" placeholder="Introduce tu clave de API aquí...">
+                        <button id="toggle-visibility-btn" class="absolute right-3 p-1 text-gray-500 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
+                    <button id="save-api-key-btn" class="mt-4 px-6 py-2 text-lg cyber-button">Save Key</button>
+                    <p id="save-status" class="mt-2 h-5 text-sm text-yellow-400"></p>
+                </div>
+            </div>
+        </main>
+        
+        <!-- FOOTER GLOBAL -->
+        <footer class="footer p-2 border-t border-[var(--cyber-border)] flex items-center justify-center">
+            <p class="text-[10px] text-center text-gray-600 px-4">
+                "Chosen One" is an open project by Pablo Pignolo & Gemini. Use it, share it, modify it, copy it, or whatever you need. Power is yours.
+            </p>
+        </footer>
+    </div>
+    
+    <template id="avatar-template">
+        <svg class="w-10 h-10 flex-shrink-0 mr-3" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 98C76.5113 98 98 76.5113 98 50C98 23.4887 76.5113 2 50 2C23.4887 2 2 23.4887 2 50C2 76.5113 23.4887 98 50 98Z" stroke="var(--cyber-green)" stroke-width="4" style="filter: drop-shadow(0 0 3px var(--cyber-green));"/>
+            <g class="eyes"><rect class="eye-left eye-blink" x="25" y="35" width="20" height="10" fill="var(--cyber-green)" style="animation-delay: 0.2s;"/><rect class="eye-right eye-blink" x="55" y="35" width="20" height="10" fill="var(--cyber-green)"/></g>
+            <g class="mouth" transform-origin="50 65"><rect class="mouth-static" x="30" y="65" width="40" height="5" fill="var(--cyber-green)"/></g>
+        </svg>
+    </template>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
