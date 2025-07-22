@@ -1,0 +1,30 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Fondo oscuro de la Matrix -->
+    <rect width="128" height="128" fill="#0A0A1A"/>
+
+    <!-- Filtro para el resplandor de neón -->
+    <defs>
+        <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+            <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+
+    <!-- El Conejo Blanco, construido con código y líneas de circuito -->
+    <g style="filter: url(#neon-glow);" stroke-width="4" stroke="#39FF14" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Orejas -->
+        <path d="M48 40 V 15 C 48 10 54 10 54 15 V 45" />
+        <path d="M80 40 V 15 C 80 10 74 10 74 15 V 45" />
+
+        <!-- Cabeza -->
+        <path d="M38 55 C 38 40, 90 40, 90 55 C 90 85, 64 105, 64 105 C 64 105, 38 85, 38 55 Z" />
+
+        <!-- Detalles internos (simulando circuitos) -->
+        <line x1="64" y1="75" x2="64" y2="95" />
+        <line x1="52" y1="65" x2="76" y2="65" />
+        <circle cx="64" cy="55" r="4" />
+    </g>
+</svg>
