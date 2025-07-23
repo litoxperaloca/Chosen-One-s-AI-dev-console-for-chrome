@@ -1,10 +1,10 @@
-# Litox's Keanu Console: Tu Consola de Desarrollo Asistida por IA
+# Chosen-One-s-AI-dev-console-for-chrome: Tu Consola de Desarrollo Asistida por IA
 
 [![Licencia GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 "Unleash autonomous AI agents into the Matrix. The choice is yours."
 
-Litox's Keanu Console es una potente extensión de navegador que transforma tu consola de desarrollo en un entorno interactivo asistido por inteligencia artificial. Inspirada en la icónica saga "Matrix", esta herramienta te permite interactuar con páginas web, ejecutar código JavaScript, extraer datos y automatizar tareas complejas utilizando agentes de IA autónomos.
+Litox's Keanu Console, conocido como Chosen-One-s-AI-dev-console-for-chrome, es una potente extensión de navegador que transforma tu consola de desarrollo en un entorno interactivo asistido por inteligencia artificial. Inspirada en la icónica saga "Matrix", esta herramienta te permite interactuar con páginas web, ejecutar código JavaScript, extraer datos y automatizar tareas complejas utilizando agentes de IA autónomos.
 
 ## 🌟 Características Principales
 
